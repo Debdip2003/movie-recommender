@@ -19,12 +19,14 @@ const StarRating = ({
   size = 48,
   message = [],
   defaultRating = 0,
+  onRate,
 }) => {
   const [rating, setRating] = useState(defaultRating);
   const [tempRating, setTempRating] = useState(0);
 
   function handleRating(rating) {
     setRating(rating);
+    onRate(rating);
   }
 
   const textStyle = {
