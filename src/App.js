@@ -12,6 +12,7 @@ import WatchedSummary from "./components/WatchedSummary";
 import WatchedMovieList from "./components/WatchedMovieList";
 import { Loader } from "./components/Loader";
 import { ErrorMessage } from "./components/ErrorMessage";
+import { MovieDetails } from "./components/MovieDetails";
 // import StarRating from "./components/StarRating";
 
 const KEY = "4b320867";
@@ -22,9 +23,24 @@ export default function App() {
   const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedId, setSelectedId] = useState(null);
+  const [userRating, setUserRating] = useState(0);
 
   // const tempQuery = "interstellar";
 
+  function handleSelection(id) {
+    setSelectedId((currId) => (id === currId ? null : id));
+  }
+
+  function handleCloseMovie() {
+    setSelectedId(null);
+  }
+
+  const handleDeleteWatch = (imdbID) => {
+    setWatched((prevWatched) =>
+      prevWatched.filter((movie) => movie.imdbID !== imdbID)
+    );
+  };
   useEffect(
     function () {
       // we cannot use async here directly as useEffect will not return a promise but async function always returns a promise , thus we have to make a function within another function so that we can call the function later with the useEffect function hook
@@ -65,6 +81,12 @@ export default function App() {
     [query] // Add dependencies (query or KEY) if they are dynamic
   );
 
+  //function to add watched movies to the list of movies
+
+  function handleWatchedMovies(movies) {
+    setWatched((watchedMovies) => [...watchedMovies, movies]);
+  }
+
   return (
     <>
       <Navbar>
@@ -80,12 +102,32 @@ export default function App() {
           ) : isLoading ? (
             <Loader />
           ) : (
-            <MovieList movies={movies} />
+            <MovieList movies={movies} handleSelection={handleSelection} />
           )}
         </Box>
         <Box>
-          <WatchedSummary watched={watched} setWatched={setWatched} />
-          <WatchedMovieList watched={watched} setWatched={setWatched} />
+          {selectedId ? (
+            <MovieDetails
+              selectedId={selectedId}
+              handleCloseMovie={handleCloseMovie}
+              handleWatchedMovies={handleWatchedMovies}
+              watched={watched}
+            />
+          ) : (
+            <>
+              <WatchedSummary
+                watched={watched}
+                setWatched={setWatched}
+                userRating={userRating}
+                setUserRating={setUserRating}
+              />
+              <WatchedMovieList
+                watched={watched}
+                setWatched={setWatched}
+                handleDeleteWatch={handleDeleteWatch}
+              />
+            </>
+          )}
         </Box>
       </Main>
       {/* <StarRating
