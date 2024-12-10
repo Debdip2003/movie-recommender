@@ -43,6 +43,8 @@ export default function App() {
   };
   useEffect(
     function () {
+      const abortController = new AbortController();
+
       // we cannot use async here directly as useEffect will not return a promise but async function always returns a promise , thus we have to make a function within another function so that we can call the function later with the useEffect function hook
       setIsLoading(true);
       setError(""); // Clear error on re-render
@@ -50,7 +52,8 @@ export default function App() {
       async function fetchMovies() {
         try {
           const response = await fetch(
-            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+            { signal: abortController.signal }
           );
 
           if (!response.ok)
@@ -63,9 +66,13 @@ export default function App() {
           if (data.response === "False") throw new Error("Movie not found!");
 
           setMovies(data.Search);
+          setError(""); // Clear error on re-render
         } catch (e) {
           // console.log(e.message); // Logs any error that occurs during the process
-          setError(e.message);
+
+          if (e.name !== "AbortError") {
+            setError(e.message);
+          }
         } finally {
           setIsLoading(false); // after fetching the movies, we set isLoading to false to hide the loading spinner
         }
@@ -77,6 +84,10 @@ export default function App() {
         return;
       }
       fetchMovies(); // Fetch movies when the component mounts or when the query changes
+
+      return function () {
+        abortController.abort();
+      };
     },
     [query] // Add dependencies (query or KEY) if they are dynamic
   );

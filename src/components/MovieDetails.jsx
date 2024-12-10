@@ -63,6 +63,36 @@ export function MovieDetails({
     handleCloseMovie();
   }
 
+  useEffect(() => {
+    if (!title) return;
+    document.title = `Movie | ${title}`;
+
+    //cleanup function
+
+    return function () {
+      document.title = "usePopcorn";
+      // console.log(title); // prev omovie name will be shown due to the closure property of js
+    }; //cleanup function to return the title to the original one once the movie is removed
+  }, [title]); // to change the title of the browser when a movie is selected
+
+  //to escape the movie details section on pressing the escape key
+
+  useEffect(
+    function () {
+      function callback(event) {
+        if (event.code === "Escape") {
+          handleCloseMovie();
+        }
+      }
+      document.addEventListener("keydown", callback);
+
+      return function () {
+        document.removeEventListener("keydown", callback);
+      };
+    },
+    [handleCloseMovie]
+  );
+
   return (
     <div className="details">
       {isLoading ? (
