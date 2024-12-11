@@ -20,14 +20,7 @@ const KEY = "4b320867";
 export default function App() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
-  // const [watched, setWatched] = useState([]);
-
-  //using callback function to display the watched movies even on reloading the page (LAZY EVALUATION)
-  const [watched, setWatched] = useState(function () {
-    const storedValue = localStorage.getItem("watched");
-    return storedValue ? JSON.parse(storedValue) : [];
-  });
-
+  const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
@@ -41,33 +34,23 @@ export default function App() {
     setSelectedId(null);
   }
 
-  //function to add watched movies to the list of movies
-
-  function handleWatchedMovies(movies) {
-    setWatched((watchedMovies) => [...watchedMovies, movies]);
-
-    //to save the data in the local storage
-    // localStorage.setItem("watched", JSON.stringify([...watched, movies])); // the movies are stored in local storage , we can check it from the application part of the console, but yet the movies are not displayed on the UI
-  }
-
   const handleDeleteWatch = (imdbID) => {
     setWatched((prevWatched) =>
       prevWatched.filter((movie) => movie.imdbID !== imdbID)
     );
   };
-
   useEffect(
     function () {
-      const abortController = new AbortController(); // to cancle the previous fetch request done for the api
+      const abortController = new AbortController();
 
       // we cannot use async here directly as useEffect will not return a promise but async function always returns a promise , thus we have to make a function within another function so that we can call the function later with the useEffect function hook
       setIsLoading(true);
-      setError("");
+      setError(""); // Clear error on re-render
 
       async function fetchMovies() {
         try {
           const response = await fetch(
-            `https://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
             { signal: abortController.signal }
           );
 
@@ -107,12 +90,11 @@ export default function App() {
     [query] // Add dependencies (query or KEY) if they are dynamic
   );
 
-  useEffect(
-    function () {
-      localStorage.setItem("watched", JSON.stringify(watched));
-    },
-    [watched]
-  );
+  //function to add watched movies to the list of movies
+
+  function handleWatchedMovies(movies) {
+    setWatched((watchedMovies) => [...watchedMovies, movies]);
+  }
 
   return (
     <>
