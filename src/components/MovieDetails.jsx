@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StarRating from "..//components/StarRating";
 import { Loader } from "./Loader";
+import { useKey } from "../hooks/useKey";
 
 const KEY = "4b320867";
 
@@ -13,6 +14,18 @@ export function MovieDetails({
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState(0);
+  const countRef = useRef(0);
+
+  //useRef is immutable so we need to use a useEffect so that we can chnage the value of the ref
+
+  useEffect(
+    function () {
+      if (userRating) {
+        countRef.current = countRef.current + 1;
+      }
+    },
+    [userRating]
+  );
 
   const isWatched = watched.map((movie) => movie.imdbId).includes(selectedId);
   const watcheduserRating = watched.find(
@@ -57,11 +70,14 @@ export function MovieDetails({
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating,
+      countRatingDecision: countRef.current,
     };
 
     handleWatchedMovies(newWatchedMovie);
     handleCloseMovie();
   }
+
+  useKey("Escape", handleCloseMovie);
 
   useEffect(() => {
     if (!title) return;
@@ -71,27 +87,8 @@ export function MovieDetails({
 
     return function () {
       document.title = "usePopcorn";
-      // console.log(title); // prev omovie name will be shown due to the closure property of js
-    }; //cleanup function to return the title to the original one once the movie is removed
+    };
   }, [title]); // to change the title of the browser when a movie is selected
-
-  //to escape the movie details section on pressing the escape key
-
-  useEffect(
-    function () {
-      function callback(event) {
-        if (event.code === "Escape") {
-          handleCloseMovie();
-        }
-      }
-      document.addEventListener("keydown", callback);
-
-      return function () {
-        document.removeEventListener("keydown", callback);
-      };
-    },
-    [handleCloseMovie]
-  );
 
   return (
     <div className="details">
